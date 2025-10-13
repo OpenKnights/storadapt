@@ -1,0 +1,52 @@
+{
+  "name": "storadapt",
+  "version": "0.1.0",
+  "description": "A flexible storage adapter with deep path updates and automatic serialization",
+  "type": "module",
+  "keywords": [
+    "storage",
+    "local storage"
+  ],
+  "license": "MIT",
+  "homepage": "https://github.com/OpenKnights/storadapt#readme",
+  "bugs": {
+    "url": "https://github.com/OpenKnights/storadapt/issues"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/OpenKnights/storadapt.git"
+  },
+  "author": "king3 <w2196592083@gmail.com>",
+  "files": [
+    "dist"
+  ],
+  "main": "./dist/index.cjs",
+  "module": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "require": "./dist/index.cjs",
+      "import": "./dist/index.js"
+    }
+  },
+  "scripts": {
+    "build": "tsdown",
+    "test": "vitest",
+    "lint": "eslint",
+    "lint:fix": "eslint --fix",
+    "format": "prettier . --write",
+    "release": "bumpp && pnpm publish",
+    "release:beta": "bumpp && pnpm publish --tag=beta"
+  },
+  "devDependencies": {
+    "@king-3/eslint-config": "1.0.8",
+    "@king-3/prettier-config": "^1.0.2",
+    "bumpp": "^10.2.3",
+    "eslint": "^9.33.0",
+    "prettier": "^3.6.2",
+    "tsdown": "^0.14.1",
+    "typescript": "^5.9.2",
+    "vitest": "^3.2.4"
+  }
+}
