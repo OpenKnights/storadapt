@@ -1,14 +1,18 @@
 /* eslint-disable no-console */
 import type {
+  EnsureOptions,
   FileInfo,
   Flags,
   FlagSchema,
   ParsedArgs,
   PlayOptions
 } from './types'
+import { execSync } from 'node:child_process'
 import fs from 'node:fs'
+import { createRequire } from 'node:module'
 import path from 'node:path'
 import process from 'node:process'
+
 import { parseArgs as nodeParseArgs } from 'node:util'
 import { NODE_RESERVED_NAMES } from './constants'
 
@@ -323,4 +327,44 @@ export function generateHelp(options: PlayOptions): string {
   help += `  ${name} --list\n`
 
   return help
+}
+
+// ==================== Other Utils ====================
+
+/**
+ * Ensure a package is installed (automatically install if it does not exist)
+ */
+export function ensurePackage(pkg: string, options: EnsureOptions = {}): void {
+  const { dev = true, manager = detectManager(), silent = false } = options
+  const require = createRequire(import.meta.url)
+
+  try {
+    require.resolve(pkg)
+  } catch {
+    console.log(
+      `⚠️ Dependency "${pkg}" not found, using ${manager} to install...`
+    )
+    const cmd = getInstallCommand(manager, pkg, dev)
+    execSync(cmd, { stdio: silent ? 'ignore' : 'inherit' })
+  }
+}
+
+/** Auto-detect current package manager */
+function detectManager(): 'npm' | 'pnpm' | 'yarn' {
+  const ua = process.env.npm_config_user_agent ?? ''
+  if (ua.startsWith('pnpm')) return 'pnpm'
+  if (ua.startsWith('yarn')) return 'yarn'
+  return 'npm'
+}
+
+/** Construct installation command */
+function getInstallCommand(manager: string, pkg: string, dev: boolean) {
+  switch (manager) {
+    case 'pnpm':
+      return `pnpm add ${pkg} ${dev ? '-D' : ''}`
+    case 'yarn':
+      return `yarn add ${pkg} ${dev ? '-D' : ''}`
+    default:
+      return `npm install ${pkg} ${dev ? '--save-dev' : ''}`
+  }
 }

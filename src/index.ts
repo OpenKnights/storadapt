@@ -1,18 +1,17 @@
+import type { BrowserStorageType, StorageAdapter } from './types'
 import { createBrowserStorageAdapter } from './adapter'
-import { DevixStorage } from './storage'
+import { Storadapt } from './storage'
 
-/**
- * Create storage instance using localStorage (browser environment)
- */
-export const createLocalStorage = (): DevixStorage => {
-  return new DevixStorage(createBrowserStorageAdapter('localStorage'))
+const createStoradapt = (
+  adapter: StorageAdapter | (() => StorageAdapter)
+): Storadapt => {
+  const adapterInstance = typeof adapter === 'function' ? adapter() : adapter
+  return new Storadapt(adapterInstance)
 }
 
-/**
- * Create storage instance using sessionStorage (browser environment)
- */
-export const createSessionStorage = (): DevixStorage => {
-  return new DevixStorage(createBrowserStorageAdapter('sessionStorage'))
+const createBrowserStoradapt = (type: BrowserStorageType): Storadapt => {
+  return new Storadapt(createBrowserStorageAdapter(type))
 }
 
-export { DevixStorage }
+export { createBrowserStoradapt, createStoradapt, Storadapt }
+export type { StorageAdapter }

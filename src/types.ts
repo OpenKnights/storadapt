@@ -1,3 +1,4 @@
+// types.ts
 export type BrowserStorageType = 'localStorage' | 'sessionStorage'
 
 /**
@@ -8,6 +9,8 @@ export interface StorageAdapter {
   setItem: (key: string, value: string) => void
   removeItem: (key: string) => void
   clear: () => void
+  length: () => number
+  key: (index: number) => string | null
 }
 
 /**
@@ -25,19 +28,63 @@ export interface GetOptions<T = any> {
  */
 export interface SetOptions {
   /**
-   * Property path to update when key contains object/array
-   * Supports deep paths and array indices
-   *
-   * Examples:
-   * - storage.set('user', 'Alice', { property: 'name' })
-   * - storage.set('user', 'Bob', { property: 'info.name' })
-   * - storage.set('users', 'Charlie', { property: '0.info.name' })
-   */
-  property?: string
-
-  /**
-   * When property is set and path doesn't exist, whether to auto-create intermediate objects
-   * Defaults to false (don't create, only warn)
+   * When path doesn't exist, whether to auto-create intermediate objects
+   * Defaults to true
    */
   createPath?: boolean
+}
+
+/**
+ * Options for setDeep method
+ */
+export interface SetDeepOptions {
+  remove?: boolean
+  createPath?: boolean
+}
+
+/**
+ * Options for getDeep method
+ */
+export interface GetDeepOptions {
+  defaultValue?: any
+}
+
+/**
+ * Deep path operation type
+ */
+export type DeepOperation = 'get' | 'set' | 'remove'
+
+/**
+ * Result of deep path parsing
+ */
+export interface DeepPathInfo {
+  storageKey: string
+  pathSegments: string[]
+  rootValue: any
+}
+
+/**
+ * Options for traversing deep object or array paths
+ */
+export interface TraversePathOptions {
+  /**
+   * Whether to stop traversal before the last path segment.
+   * @default false
+   */
+  stopBeforeLast?: boolean
+
+  /**
+   * Whether to automatically create missing objects or arrays
+   * when traversing deep paths.
+   *
+   * @default false
+   */
+  createPath?: boolean
+
+  /**
+   * Callback to determine whether to throw error
+   * @param error - The error that occurred
+   * @returns true to throw error, false to suppress it
+   */
+  shouldThrowError?: (error: Error) => boolean
 }

@@ -32,6 +32,8 @@
   },
   "scripts": {
     "build": "tsdown",
+    "build:play": "tsdown cli/play.ts -d cli/.output/ -f esm",
+    "play": "node cli/.output/play.js",
     "test": "vitest",
     "lint": "eslint",
     "lint:fix": "eslint --fix",
@@ -43,10 +45,13 @@
     "@king-3/eslint-config": "1.0.8",
     "@king-3/prettier-config": "^1.0.2",
     "@types/node": "^24.9.2",
+    "@types/node-localstorage": "^1.3.3",
     "bumpp": "^10.2.3",
     "eslint": "^9.33.0",
+    "node-localstorage": "^3.0.5",
     "prettier": "^3.6.2",
     "tsdown": "^0.14.1",
+    "tsx": "^4.20.6",
     "typescript": "^5.9.2",
     "vitest": "^3.2.4"
   }

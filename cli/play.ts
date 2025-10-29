@@ -5,7 +5,12 @@ import fs from 'node:fs'
 import path from 'node:path'
 import process from 'node:process'
 import { fileURLToPath } from 'node:url'
-import { generateHelp, parseArguments, printFileList } from './util'
+import {
+  ensurePackage,
+  generateHelp,
+  parseArguments,
+  printFileList
+} from './util'
 
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = path.dirname(__filename)
@@ -79,7 +84,11 @@ function resolveTsconfigPath(
  */
 function runTsx(
   filePath: string,
-  options: { watch?: boolean; tsconfigPath?: string } = {}
+  options: {
+    watch?: boolean
+    tsconfigPath?: string
+    autoInstall?: boolean
+  } = {}
 ) {
   // Build tsx command
   const tsxCommand: string[] = []
@@ -109,6 +118,10 @@ function runTsx(
 
   if (process.platform === 'win32') {
     spawnOptions.shell = true
+  }
+
+  if (options.autoInstall) {
+    ensurePackage('tsx')
   }
 
   // Execute tsx
@@ -149,7 +162,8 @@ export function play(options?: PlayOptions) {
     description = 'A simple TypeScript playground CLI',
     flags,
     rootDir,
-    tsconfig
+    tsconfig,
+    autoInstall = false
   } = options || {}
 
   const args = parseArguments(process.argv.slice(2), flags)
@@ -194,7 +208,8 @@ export function play(options?: PlayOptions) {
   // Run tsx
   runTsx(filePath, {
     watch: args.watch || false,
-    tsconfigPath
+    tsconfigPath,
+    autoInstall
   })
 }
 
@@ -236,7 +251,8 @@ const playOptions: PlayOptions = {
     }
   },
   rootDir: './playground', // Root directory for file lookup
-  tsconfig: './tsconfig.json'
+  tsconfig: './tsconfig.json',
+  autoInstall: true
 }
 
 play(playOptions)

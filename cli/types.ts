@@ -25,6 +25,7 @@ export interface PlayOptions {
   flags?: Flags
   rootDir?: string
   tsconfig?: string
+  autoInstall?: boolean
 }
 
 // ==================== Parser Types ====================
@@ -42,4 +43,10 @@ export interface FileInfo {
   name: string // File name (without .ts extension)
   path: string // Full path
   relativePath: string // Relative path from rootDir (for display)
+}
+
+export interface EnsureOptions {
+  dev?: boolean
+  manager?: 'npm' | 'pnpm' | 'yarn'
+  silent?: boolean
 }

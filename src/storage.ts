@@ -1,70 +1,155 @@
-import type { GetOptions, SetOptions, StorageAdapter } from './types'
+// storage.ts
+import type {
+  DeepOperation,
+  DeepPathInfo,
+  GetDeepOptions,
+  GetOptions,
+  SetDeepOptions,
+  SetOptions,
+  StorageAdapter
+} from './types'
 import {
   isArrayIndex,
   isJsonString,
   isObject,
   isString,
-  parsePath
+  parsePath,
+  traversePath
 } from './util'
 
-export class DevixStorage {
+export class Storadapt {
   private adapter: StorageAdapter
 
   constructor(adapter: StorageAdapter) {
     this.adapter = adapter
   }
 
-  /**
-   * Get stored value with automatic JSON deserialization
-   */
-  get<T = any>(key: string, options?: GetOptions<T>): T | null {
+  get length(): number {
     try {
-      const rawValue = this.adapter.getItem(key)
+      return this.adapter.length()
+    } catch (error) {
+      errorLogger(`Storadapt.length error`, error)
+      return 0
+    }
+  }
+
+  /**
+   * Get key name by index (same as localStorage.key)
+   */
+  key<T = any>(index: number, options?: GetOptions<T>): T | null {
+    const defaultValue = options?.defaultValue
+
+    try {
+      const rawValue = this.adapter.key(index)
 
       if (rawValue === null) {
-        return options?.defaultValue ?? null
+        return defaultValue ?? null
       }
 
-      // Attempt to parse JSON
       if (isJsonString(rawValue)) {
         return JSON.parse(rawValue) as T
       }
 
       return rawValue as T
     } catch (error) {
-      console.error(`DevixStorage.get error for key "${key}":`, error)
+      if (defaultValue !== undefined) return defaultValue
+      errorLogger(`Storadapt.key error`, error)
+      return null
+    }
+  }
+
+  /**
+   * Get stored value with automatic JSON deserialization
+   * Supports deep path: 'user.infos.0.name'
+   */
+  get<T = any>(key: string, options?: GetOptions<T>): T | null {
+    try {
+      const dotIndex = key.indexOf('.')
+
+      if (dotIndex === -1) {
+        return this._getSimple<T>(key, options)
+      }
+
+      // Handle deep path
+      const pathInfo = this._parseDeepPath(key, dotIndex, 'get')
+      if (!pathInfo) {
+        return options?.defaultValue ?? null
+      }
+
+      const { rootValue, pathSegments } = pathInfo
+
+      // Use getDeep to retrieve deep value
+      return this._getDeep(rootValue, pathSegments, {
+        defaultValue: options?.defaultValue
+      }) as T
+    } catch (error) {
+      errorLogger(`Storadapt.get error for key "${key}"`, error)
       return options?.defaultValue ?? null
     }
   }
 
   /**
    * Set storage value with automatic object serialization
-   * Supports deep path modification and array indices
+   * Supports deep path: 'user.infos.0.name'
    */
   set(key: string, value: any, options?: SetOptions): void {
     try {
-      // Handle property update scenario
-      if (this._shouldUpdateProperty(key, options)) {
-        this._updateByPath(key, value, options!)
+      const dotIndex = key.indexOf('.')
+
+      if (dotIndex === -1) {
+        const serialized = this._serialize(value)
+        this.adapter.setItem(key, serialized)
         return
       }
 
-      // Serialize and store
-      const serialized = this._serialize(value)
-      this.adapter.setItem(key, serialized)
+      // Handle deep path
+      const pathInfo = this._parseDeepPath(key, dotIndex, 'set')
+      if (!pathInfo) return
+
+      const { storageKey, rootValue, pathSegments } = pathInfo
+
+      // Use setDeep to set deep value
+      this._setDeep(rootValue, pathSegments, value, {
+        createPath: options?.createPath
+      })
+
+      // Save back to storage
+      this._saveToStorage(storageKey, rootValue)
     } catch (error) {
-      console.error(`DevixStorage.set error for key "${key}":`, error)
+      errorLogger(`Storadapt.set error for key "${key}"`, error)
     }
   }
 
   /**
-   * Remove specified key
+   * Remove specified key or deep path
+   * - Without dot: removes entire key
+   * - With dot: removes specific property/index using setDeep
    */
   remove(key: string): void {
     try {
-      this.adapter.removeItem(key)
+      const dotIndex = key.indexOf('.')
+
+      if (dotIndex === -1) {
+        this.adapter.removeItem(key)
+        return
+      }
+
+      // Handle deep path
+      const pathInfo = this._parseDeepPath(key, dotIndex, 'remove')
+      if (!pathInfo) return
+
+      const { storageKey, rootValue, pathSegments } = pathInfo
+
+      // Use setDeep with remove option
+      this._setDeep(rootValue, pathSegments, undefined, {
+        remove: true,
+        createPath: false
+      })
+
+      // Save back to storage
+      this._saveToStorage(storageKey, rootValue)
     } catch (error) {
-      console.error(`DevixStorage.remove error for key "${key}":`, error)
+      errorLogger(`Storadapt.remove error for key "${key}"`, error)
     }
   }
 
@@ -73,9 +158,16 @@ export class DevixStorage {
    */
   has(key: string): boolean {
     try {
-      return this.adapter.getItem(key) !== null
+      const dotIndex = key.indexOf('.')
+
+      if (dotIndex === -1) {
+        return this.adapter.getItem(key) !== null
+      }
+
+      const value = this.get(key)
+      return value !== null
     } catch (error) {
-      console.error(`DevixStorage.has error for key "${key}":`, error)
+      errorLogger(`Storadapt.has error for key "${key}"`, error)
       return false
     }
   }
@@ -87,203 +179,190 @@ export class DevixStorage {
     try {
       this.adapter.clear()
     } catch (error) {
-      console.error('DevixStorage.clear error:', error)
+      errorLogger(`Storadapt.clear error`, error)
     }
   }
 
   // ==================== Private Methods ====================
 
   /**
-   * Check if should update object property
+   * Parse deep path and prepare for operation
+   * Handles common logic for get/set/remove deep operations
+   *
+   * @returns DeepPathInfo or null if validation fails
    */
-  private _shouldUpdateProperty(key: string, options?: SetOptions): boolean {
-    if (!options?.property) return false
-
-    const property = options.property.trim()
-    if (!property) return false
-
-    return this.has(key)
-  }
-
-  /**
-   * Update value by path (supports deep paths and array indices)
-   */
-  private _updateByPath(key: string, value: any, options: SetOptions): void {
-    const existingValue = this.get(key)
-    const pathSegments = parsePath(options.property!)
-
-    if (pathSegments.length === 0) {
-      console.warn(`Invalid property path: "${options.property}"`)
-      return
-    }
-
-    // Single-level path, use original logic (backward compatible)
-    if (pathSegments.length === 1) {
-      this._updateSingleProperty(key, existingValue, value, pathSegments[0])
-      return
-    }
-
-    // Deep path
-    const result = this._setDeepValue(
-      existingValue,
-      pathSegments,
-      value,
-      options.createPath ?? false
-    )
-
-    if (result.success) {
-      const serialized = JSON.stringify(existingValue)
-      this.adapter.setItem(key, serialized)
-    }
-  }
-
-  /**
-   * Update single property (original logic)
-   */
-  private _updateSingleProperty(
+  private _parseDeepPath(
     key: string,
-    target: any,
-    value: any,
-    property: string
-  ): void {
-    // Handle array index
-    if (Array.isArray(target) && isArrayIndex(property)) {
-      const index = Number.parseInt(property, 10)
-      if (index >= 0 && index < target.length) {
-        target[index] = value
-        const serialized = JSON.stringify(target)
-        this.adapter.setItem(key, serialized)
-      } else {
-        console.warn(
-          `Array index ${index} out of bounds for key "${key}" (length: ${target.length})`
-        )
+    dotIndex: number,
+    operation: DeepOperation
+  ): DeepPathInfo | null {
+    // 1. Split storage key and deep path
+    const storageKey = key.slice(0, dotIndex)
+    const deepPath = key.slice(dotIndex + 1)
+    const pathSegments = parsePath(deepPath)
+
+    // 2. Get root value from storage
+    const rawValue = this.adapter.getItem(storageKey)
+
+    // Handle non-existent key based on operation
+    if (rawValue === null) {
+      if (operation === 'get') {
+        return null // Will return defaultValue in caller
       }
-      return
+      if (operation === 'remove') {
+        console.warn(`Key "${storageKey}" does not exist`)
+        return null
+      }
+      if (operation === 'set') {
+        // Create new root based on first segment
+        const rootValue = isArrayIndex(pathSegments[0]) ? [] : {}
+        return { storageKey, pathSegments, rootValue }
+      }
     }
 
-    // Handle object property
-    if (!isObject(target)) {
+    // 3. Parse JSON
+    let rootValue: any
+    if (isJsonString(rawValue!)) {
+      rootValue = JSON.parse(rawValue!)
+    } else {
+      rootValue = rawValue
+    }
+
+    // 4. Validate first segment type
+    if (!this._validateFirstSegment(rootValue, pathSegments[0])) {
+      const expectedType = isArrayIndex(pathSegments[0]) ? 'array' : 'object'
       console.warn(
-        `Cannot update property "${property}" on non-object value for key "${key}"`
+        `Type mismatch: expected ${expectedType} for key "${storageKey}", got ${typeof rootValue}`
       )
-      return
+      return null
     }
 
-    target[property] = value
-    const serialized = JSON.stringify(target)
+    return { storageKey, pathSegments, rootValue }
+  }
+
+  /**
+   * Save value back to storage
+   */
+  private _saveToStorage(key: string, value: any): void {
+    const serialized = JSON.stringify(value)
     this.adapter.setItem(key, serialized)
+  }
+
+  /**
+   * Simple get (without deep path)
+   */
+  private _getSimple<T = any>(key: string, options?: GetOptions<T>): T | null {
+    const rawValue = this.adapter.getItem(key)
+
+    if (rawValue === null) {
+      return options?.defaultValue ?? null
+    }
+
+    if (isJsonString(rawValue)) {
+      return JSON.parse(rawValue) as T
+    }
+
+    return rawValue as T
+  }
+
+  /**
+   * Get deep path value
+   */
+  private _getDeep(obj: any, path: string[], options?: GetDeepOptions): any {
+    const { defaultValue } = options || {}
+
+    const hasDefaultValue = defaultValue !== undefined
+
+    try {
+      const result = traversePath(obj, path, {
+        shouldThrowError: () => !hasDefaultValue
+      })
+
+      const emptyResult = result === undefined || result === null
+      if (emptyResult && hasDefaultValue) {
+        return defaultValue
+      }
+
+      return result
+    } catch (error) {
+      if (hasDefaultValue) return defaultValue
+      throw error
+    }
   }
 
   /**
    * Set deep path value
    */
-  private _setDeepValue(
+  private _setDeep(
     obj: any,
-    pathSegments: string[],
-    value: any,
-    createPath: boolean
-  ): { success: boolean; message?: string } {
-    let current = obj
+    path: string[],
+    value?: any,
+    options?: SetDeepOptions
+  ): void {
+    const { remove = false, createPath = false } = options || {}
 
-    // Traverse to second-to-last level
-    for (let i = 0; i < pathSegments.length - 1; i++) {
-      const segment = pathSegments[i]
-      const nextSegment = pathSegments[i + 1]
-      const isCurrentArrayIndex = isArrayIndex(segment)
-      const isNextArrayIndex = isArrayIndex(nextSegment)
+    // Traverse to parent object
+    const parent = traversePath(obj, path, {
+      stopBeforeLast: true,
+      createPath
+    })
 
-      // Handle current level
-      if (isCurrentArrayIndex) {
-        // Current is array index
-        if (!Array.isArray(current)) {
-          console.warn(
-            `Expected array at path "${pathSegments.slice(0, i + 1).join('.')}", got ${typeof current}`
-          )
-          return { success: false, message: 'Type mismatch: expected array' }
-        }
+    // Handle last level
+    const lastSegment = path[path.length - 1]
 
-        const index = Number.parseInt(segment, 10)
-        if (index < 0 || index >= current.length) {
-          console.warn(
-            `Array index ${index} out of bounds at path "${pathSegments.slice(0, i + 1).join('.')}"`
-          )
-          return { success: false, message: 'Array index out of bounds' }
-        }
-
-        // Check if next level exists
-        if (current[index] === undefined || current[index] === null) {
-          if (createPath) {
-            // Create object or array based on next segment
-            current[index] = isNextArrayIndex ? [] : {}
-          } else {
-            console.warn(
-              `Path does not exist: "${pathSegments.slice(0, i + 2).join('.')}". Use createPath: true to auto-create.`
-            )
-            return { success: false, message: 'Path does not exist' }
-          }
-        }
-
-        current = current[index]
+    // Helper function to set or remove value
+    const setOrRemove = (
+      target: Record<string | number, any>,
+      key: string | number
+    ): void => {
+      if (remove) {
+        delete target[key]
       } else {
-        // Current is object property
-        if (!isObject(current)) {
-          console.warn(
-            `Expected object at path "${pathSegments.slice(0, i + 1).join('.')}", got ${typeof current}`
-          )
-          return { success: false, message: 'Type mismatch: expected object' }
-        }
-
-        // Check if property exists
-        if (!(segment in current)) {
-          if (createPath) {
-            // Create object or array based on next segment
-            current[segment] = isNextArrayIndex ? [] : {}
-          } else {
-            console.warn(
-              `Property "${segment}" does not exist at path "${pathSegments.slice(0, i + 1).join('.')}". Use createPath: true to auto-create.`
-            )
-            return { success: false, message: 'Property does not exist' }
-          }
-        }
-
-        current = current[segment]
+        target[key] = value
       }
     }
-
-    // Set last level value
-    const lastSegment = pathSegments[pathSegments.length - 1]
 
     if (isArrayIndex(lastSegment)) {
-      // Last level is array index
-      if (!Array.isArray(current)) {
-        console.warn(
-          `Expected array at path "${pathSegments.slice(0, -1).join('.')}", got ${typeof current}`
-        )
-        return { success: false, message: 'Type mismatch: expected array' }
+      if (!Array.isArray(parent)) {
+        throw new TypeError(`${path.slice(0, -1).join('.')} is not an array`)
       }
 
-      const index = Number.parseInt(lastSegment, 10)
-      if (index < 0 || index >= current.length) {
-        console.warn(
-          `Array index ${index} out of bounds at path "${pathSegments.join('.')}"`
-        )
-        return { success: false, message: 'Array index out of bounds' }
+      const lastIndex = Number.parseInt(lastSegment, 10)
+
+      if (lastIndex < 0) {
+        throw new Error(`Array index ${lastIndex} cannot be negative`)
       }
 
-      current[index] = value
+      if (lastIndex >= parent.length) {
+        if (!createPath) {
+          throw new Error(`Array index ${lastIndex} out of bounds`)
+        }
+        while (parent.length <= lastIndex) {
+          parent.push(undefined)
+        }
+      }
+
+      setOrRemove(parent, lastIndex)
     } else {
-      // Last level is object property
-      if (!isObject(current)) {
-        console.warn(
-          `Expected object at path "${pathSegments.slice(0, -1).join('.')}", got ${typeof current}`
-        )
-        return { success: false, message: 'Type mismatch: expected object' }
+      if (!isObject(parent)) {
+        throw new Error(`${path.slice(0, -1).join('.')} is not an object`)
       }
 
-      current[lastSegment] = value
+      setOrRemove(parent, lastSegment)
     }
+  }
 
-    return { success: true }
+  /**
+   * Validate first segment type matches value type
+   */
+  private _validateFirstSegment(value: any, firstSegment: string): boolean {
+    const expectArray = isArrayIndex(firstSegment)
+
+    if (expectArray) {
+      return Array.isArray(value)
+    } else {
+      return isObject(value)
+    }
   }
 
   /**
@@ -298,7 +377,12 @@ export class DevixStorage {
       return JSON.stringify(value)
     }
 
-    // Handle other primitive types
     return String(value)
   }
+}
+
+function errorLogger(msg: string, error: unknown) {
+  console.info('')
+  console.error(`${msg}:\n`, error)
+  console.info('')
 }
