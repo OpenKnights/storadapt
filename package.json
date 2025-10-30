@@ -35,6 +35,8 @@
     "build:play": "tsdown cli/play.ts -d cli/.output/ -f esm",
     "play": "node cli/.output/play.js",
     "test": "vitest",
+    "test:adapter": "vitest test/adapter.test.ts",
+    "test:integration": "vitest test/integration.test.ts",
     "lint": "eslint",
     "lint:fix": "eslint --fix",
     "format": "prettier . --write",
@@ -54,5 +56,8 @@
     "tsx": "^4.20.6",
     "typescript": "^5.9.2",
     "vitest": "^3.2.4"
+  },
+  "dependencies": {
+    "superjson": "^2.2.5"
   }
 }

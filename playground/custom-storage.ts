@@ -161,7 +161,7 @@ const createCustomStorage = (storagePath: string): ExtendedStorageAdapter => {
     }
 
     try {
-      return getItem(keys[index])
+      return keys[index]
     } catch (error) {
       logError('Key', error)
       return null

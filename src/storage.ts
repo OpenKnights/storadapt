@@ -8,6 +8,8 @@ import type {
   SetOptions,
   StorageAdapter
 } from './types'
+
+import superjson from 'superjson'
 import {
   isArrayIndex,
   isJsonString,
@@ -36,23 +38,12 @@ export class Storadapt {
   /**
    * Get key name by index (same as localStorage.key)
    */
-  key<T = any>(index: number, options?: GetOptions<T>): T | null {
-    const defaultValue = options?.defaultValue
-
+  key<T = any>(index: number): T | null {
     try {
       const rawValue = this.adapter.key(index)
 
-      if (rawValue === null) {
-        return defaultValue ?? null
-      }
-
-      if (isJsonString(rawValue)) {
-        return JSON.parse(rawValue) as T
-      }
-
       return rawValue as T
     } catch (error) {
-      if (defaultValue !== undefined) return defaultValue
       errorLogger(`Storadapt.key error`, error)
       return null
     }
@@ -223,7 +214,7 @@ export class Storadapt {
     // 3. Parse JSON
     let rootValue: any
     if (isJsonString(rawValue!)) {
-      rootValue = JSON.parse(rawValue!)
+      rootValue = superjson.parse(rawValue!)
     } else {
       rootValue = rawValue
     }
@@ -244,7 +235,7 @@ export class Storadapt {
    * Save value back to storage
    */
   private _saveToStorage(key: string, value: any): void {
-    const serialized = JSON.stringify(value)
+    const serialized = superjson.stringify(value)
     this.adapter.setItem(key, serialized)
   }
 
@@ -259,7 +250,7 @@ export class Storadapt {
     }
 
     if (isJsonString(rawValue)) {
-      return JSON.parse(rawValue) as T
+      return superjson.parse(rawValue) as T
     }
 
     return rawValue as T
@@ -374,7 +365,7 @@ export class Storadapt {
     }
 
     if (isObject(value) || Array.isArray(value)) {
-      return JSON.stringify(value)
+      return superjson.stringify(value)
     }
 
     return String(value)
