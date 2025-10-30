@@ -3,15 +3,16 @@
 import { LocalStorage } from 'node-localstorage'
 import { createStoradapt } from '../src'
 
-const nodeLocalStorage = new LocalStorage('../.cache')
-
-const nodeStoradapt = createStoradapt({
-  getItem: (key: string) => nodeLocalStorage.getItem(key),
-  setItem: (key: string, value: any) => nodeLocalStorage.setItem(key, value),
-  removeItem: (key: string) => nodeLocalStorage.removeItem(key),
-  clear: nodeLocalStorage.clear,
-  key: nodeLocalStorage.key,
-  length: () => nodeLocalStorage.length
+const nodeStoradapt = createStoradapt(() => {
+  const nodeStorage = new LocalStorage('../.cache/node-storage')
+  return {
+    getItem: (key: string) => nodeStorage.getItem(key),
+    setItem: (key: string, value: any) => nodeStorage.setItem(key, value),
+    removeItem: (key: string) => nodeStorage.removeItem(key),
+    clear: nodeStorage.clear,
+    key: nodeStorage.key,
+    length: () => nodeStorage.length
+  }
 })
 
 if (!nodeStoradapt.get('testObj')) {
@@ -86,7 +87,6 @@ const testKeyDefaultValue = () => {
   console.log(`🚀 ~ testKeyDefaultValue:`, nodeStoradapt.length)
 }
 
-// 设置对象
 // testSetRaw()
 /* 
   before: {
@@ -104,14 +104,14 @@ const testKeyDefaultValue = () => {
   }
 */
 
-// 设置路径不存在对象
+// Test set non-path
 // testSetNotPath()
 /* 
   Storadapt.set error for key "testObj.backets.2.age":
     Error: Property "backets" does not exist at backets
 */
 
-// 设置路径不存在创建路径对象
+// Test set creation path
 // testSetCreatePath()
 /* 
   before: {
@@ -130,24 +130,23 @@ const testKeyDefaultValue = () => {
   }
 */
 
-// 正常获取值
 // testGetRaw()
 /* 
  testGetRaw: { age: 18, name: 'Tony', sex: 'female' }
 */
 
-// 获取路径不存在的对象
+// Get the object that does not exist in the path
 // testGetNotPath()
 /* 
   Storadapt.get error for key "testObj.nameList.2.age":
     Error: Property "nameList" does not exist at nameList
 */
 
-// 获取所有缓存数量
+// Get the total number of caches
 // testStorageLength()
 
-// 通过下标获取值
+// Get the value by index
 testKeyRaw()
 
-// 通过下标获取值-设置默认值
+// Get value by index - Set default value
 // testKeyDefaultValue()
