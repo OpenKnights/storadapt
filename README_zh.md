@@ -1,6 +1,6 @@
 # Storadapt
 
-> A flexible storage adapter with deep path updates and automatic serialization.
+> 一个灵活的存储适配器，支持深度路径更新和自动序列化。
 
 [![npm version](https://img.shields.io/npm/v/storadapt.svg)](https://www.npmjs.com/package/storadapt)
 [![npm downloads](https://img.shields.io/npm/dm/storadapt.svg)](https://www.npmjs.com/package/storadapt)
@@ -9,17 +9,17 @@
 
 [English](./README.md) | [中文](./README_zh.md)
 
-## ✨ Features
+## ✨ 特性
 
-- 🎯 **Deep Path Access** - Access nested objects using dot notation (e.g., `user.profile.name`)
-- 🔄 **Auto Serialization** - Automatic JSON serialization and deserialization
-- 🔌 **Adapter Pattern** - Support for multiple storage backends (localStorage, sessionStorage, custom storage)
-- 🛡️ **Type Safe** - Full TypeScript support with type inference
-- 📦 **Zero Dependencies** - No external dependencies in the core library
-- ⚡ **Lightweight** - Minimal bundle size
-- 🧪 **Well Tested** - Comprehensive test coverage
+- 🎯 **深度路径访问** - 使用点号语法访问嵌套对象（如 `user.profile.name`）
+- 🔄 **自动序列化** - 自动处理 JSON 序列化和反序列化
+- 🔌 **适配器模式** - 支持多种存储后端（localStorage、sessionStorage、自定义存储）
+- 🛡️ **类型安全** - 完整的 TypeScript 支持和类型推导
+- 📦 **零依赖** - 核心库无外部依赖
+- ⚡ **轻量级** - 最小化的打包体积
+- 🧪 **完善测试** - 全面的测试覆盖
 
-## 📦 Installation
+## 📦 安装
 
 ```bash
 npm install storadapt
@@ -33,132 +33,132 @@ yarn add storadapt
 pnpm add storadapt
 ```
 
-## 🚀 Quick Start
+## 🚀 快速开始
 
-### Browser Storage
+### 浏览器存储
 
 ```typescript
 import { createBrowserStoradapt } from 'storadapt'
 
-// Create localStorage instance
+// 创建 localStorage 实例
 const storage = createBrowserStoradapt('localStorage')
 
-// Simple operations
+// 简单操作
 storage.set('username', 'Alice')
 storage.get('username') // 'Alice'
 
-// Object operations
+// 对象操作
 storage.set('user', {
   name: 'Alice',
   age: 30,
   email: 'alice@example.com'
 })
 
-// Deep path access
+// 深度路径访问
 storage.get('user.name') // 'Alice'
 storage.set('user.age', 31)
 ```
 
-### Custom Storage Adapter
+### 自定义存储适配器
 
 ```typescript
 import { createStoradapt } from 'storadapt'
 
-// Create custom adapter
+// 创建自定义适配器
 const adapter = {
   getItem: (key) => {
-    /* your implementation */
+    /* 你的实现 */
   },
   setItem: (key, value) => {
-    /* your implementation */
+    /* 你的实现 */
   },
   removeItem: (key) => {
-    /* your implementation */
+    /* 你的实现 */
   },
   clear: () => {
-    /* your implementation */
+    /* 你的实现 */
   },
   length: () => {
-    /* your implementation */
+    /* 你的实现 */
   },
   key: (index) => {
-    /* your implementation */
+    /* 你的实现 */
   }
 }
 
 const storage = createStoradapt(adapter)
 ```
 
-## 📖 API Documentation
+## 📖 API 文档
 
-### Basic Operations
+### 基础操作
 
 #### `get<T>(key: string, options?: GetOptions<T>): T | null`
 
-Retrieve value with automatic JSON deserialization.
+获取存储值，自动进行 JSON 反序列化。
 
 ```typescript
-// Simple get
+// 简单获取
 const name = storage.get('username')
 
-// With default value
+// 带默认值
 const theme = storage.get('theme', { defaultValue: 'light' })
 
-// Deep path access
+// 深度路径访问
 const email = storage.get('user.profile.email')
 
-// Array index access
+// 数组索引访问
 const firstItem = storage.get('items.0')
 ```
 
 #### `set(key: string, value: any, options?: SetOptions): void`
 
-Store value with automatic serialization.
+存储值，自动进行序列化。
 
 ```typescript
-// Simple set
+// 简单设置
 storage.set('username', 'Alice')
 
-// Object set
+// 对象设置
 storage.set('user', { name: 'Alice', age: 30 })
 
-// Deep path set
+// 深度路径设置
 storage.set('user.profile.email', 'alice@example.com')
 
-// Auto-create intermediate paths
+// 自动创建中间路径
 storage.set('user.settings.theme', 'dark', { createPath: true })
 
-// Array operations
+// 数组操作
 storage.set('items.0', 'first item')
 ```
 
 #### `remove(key: string): void`
 
-Remove key or deep path property.
+删除键或深度路径属性。
 
 ```typescript
-// Remove entire key
+// 删除整个键
 storage.remove('username')
 
-// Remove deep property
+// 删除深度属性
 storage.remove('user.profile.email')
 
-// Remove array element
+// 删除数组元素
 storage.remove('items.0')
 ```
 
 #### `has(key: string): boolean`
 
-Check if key or deep path exists.
+检查键或深度路径是否存在。
 
 ```typescript
-storage.has('username') // true or false
-storage.has('user.profile.email') // true or false
+storage.has('username') // true 或 false
+storage.has('user.profile.email') // true 或 false
 ```
 
 #### `clear(): void`
 
-Clear all storage.
+清空所有存储。
 
 ```typescript
 storage.clear()
@@ -166,7 +166,7 @@ storage.clear()
 
 #### `key(index: number): string | null`
 
-Get key name by index.
+根据索引获取键名。
 
 ```typescript
 const firstKey = storage.key(0)
@@ -174,19 +174,19 @@ const firstKey = storage.key(0)
 
 #### `length: number`
 
-Get the number of stored items.
+获取存储项的数量。
 
 ```typescript
 const count = storage.length
 ```
 
-### Options
+### 配置选项
 
 #### GetOptions
 
 ```typescript
 interface GetOptions<T> {
-  defaultValue?: T // Default value when key doesn't exist
+  defaultValue?: T // 键不存在时的默认值
 }
 ```
 
@@ -194,116 +194,116 @@ interface GetOptions<T> {
 
 ```typescript
 interface SetOptions {
-  createPath?: boolean // Auto-create intermediate objects (default: true)
+  createPath?: boolean // 自动创建中间对象（默认：true）
 }
 ```
 
-## 🎯 Usage Examples
+## 🎯 使用示例
 
-### User Profile Management
+### 用户配置管理
 
 ```typescript
-// Initialize user data
+// 初始化用户数据
 storage.set('user:123', {
   id: 123,
   name: 'Alice',
   email: 'alice@example.com',
   preferences: {
     theme: 'dark',
-    language: 'en'
+    language: 'zh'
   }
 })
 
-// Read user name
+// 读取用户名
 const name = storage.get('user:123.name') // 'Alice'
 
-// Update theme preference
+// 更新主题偏好
 storage.set('user:123.preferences.theme', 'light')
 
-// Add new preference
+// 添加新的偏好设置
 storage.set('user:123.preferences.notifications', true)
 
-// Remove specific property
+// 删除特定属性
 storage.remove('user:123.preferences.notifications')
 ```
 
-### Shopping Cart
+### 购物车
 
 ```typescript
-// Initialize cart
+// 初始化购物车
 storage.set('cart', {
   items: [],
   total: 0
 })
 
-// Add items
+// 添加商品
 storage.set('cart.items', [
-  { id: 1, name: 'Product A', price: 10, quantity: 2 },
-  { id: 2, name: 'Product B', price: 15, quantity: 1 }
+  { id: 1, name: '商品 A', price: 10, quantity: 2 },
+  { id: 2, name: '商品 B', price: 15, quantity: 1 }
 ])
 
-// Update first item quantity
+// 更新第一个商品的数量
 storage.set('cart.items.0.quantity', 3)
 
-// Get second item name
-const itemName = storage.get('cart.items.1.name') // 'Product B'
+// 获取第二个商品的名称
+const itemName = storage.get('cart.items.1.name') // '商品 B'
 
-// Remove second item
+// 删除第二个商品
 storage.remove('cart.items.1')
 ```
 
-### Configuration Management
+### 配置管理
 
 ```typescript
-// Initialize empty config
+// 初始化空配置
 storage.set('config', {})
 
-// Add nested configuration with auto-path creation
+// 添加嵌套配置，自动创建路径
 storage.set('config.app.name', 'MyApp', { createPath: true })
 storage.set('config.app.version', '1.0.0')
 storage.set('config.features.darkMode', true, { createPath: true })
 
-// Read configuration
+// 读取配置
 const appName = storage.get('config.app.name') // 'MyApp'
 const darkMode = storage.get('config.features.darkMode') // true
 ```
 
-### Array Operations
+### 数组操作
 
 ```typescript
-// Initialize array
+// 初始化数组
 storage.set('todos', [
-  { id: 1, text: 'Buy milk', done: false },
-  { id: 2, text: 'Walk dog', done: true }
+  { id: 1, text: '买牛奶', done: false },
+  { id: 2, text: '遛狗', done: true }
 ])
 
-// Access by index
-const firstTodo = storage.get('todos.0') // { id: 1, text: 'Buy milk', done: false }
+// 通过索引访问
+const firstTodo = storage.get('todos.0') // { id: 1, text: '买牛奶', done: false }
 
-// Update property
+// 更新属性
 storage.set('todos.0.done', true)
 
-// Add new item (with path creation)
-storage.set('todos.2', { id: 3, text: 'Read book', done: false })
+// 添加新项（使用路径创建）
+storage.set('todos.2', { id: 3, text: '读书', done: false })
 
-// Get specific property
-const secondTodoText = storage.get('todos.1.text') // 'Walk dog'
+// 获取特定属性
+const secondTodoText = storage.get('todos.1.text') // '遛狗'
 ```
 
-### Complex Nested Structures
+### 复杂嵌套结构
 
 ```typescript
 storage.set('organization', {
   company: {
     departments: [
       {
-        name: 'Engineering',
+        name: '工程部',
         teams: [
           {
-            name: 'Frontend',
+            name: '前端团队',
             members: [
-              { name: 'Alice', role: 'Lead' },
-              { name: 'Bob', role: 'Developer' }
+              { name: 'Alice', role: '组长' },
+              { name: 'Bob', role: '开发者' }
             ]
           }
         ]
@@ -312,22 +312,22 @@ storage.set('organization', {
   }
 })
 
-// Access deeply nested data
-const deptName = storage.get('organization.company.departments.0.name') // 'Engineering'
+// 访问深层嵌套数据
+const deptName = storage.get('organization.company.departments.0.name') // '工程部'
 const memberName = storage.get(
   'organization.company.departments.0.teams.0.members.1.name'
 ) // 'Bob'
 
-// Update deeply nested data
+// 更新深层嵌套数据
 storage.set(
   'organization.company.departments.0.teams.0.members.0.role',
-  'Senior Lead'
+  '高级组长'
 )
 ```
 
-## 🔧 Advanced Usage
+## 🔧 高级用法
 
-### Custom Memory Adapter
+### 自定义内存适配器
 
 ```typescript
 import { createStoradapt } from 'storadapt'
@@ -354,7 +354,7 @@ function createMemoryAdapter() {
 const storage = createStoradapt(createMemoryAdapter())
 ```
 
-### Node.js with node-localstorage
+### Node.js 环境使用 node-localstorage
 
 ```typescript
 import { LocalStorage } from 'node-localstorage'
@@ -374,9 +374,9 @@ const adapter = {
 const storage = createStoradapt(adapter)
 ```
 
-## 🎨 TypeScript Support
+## 🎨 TypeScript 支持
 
-Storadapt is written in TypeScript and provides full type support:
+Storadapt 使用 TypeScript 编写，提供完整的类型支持：
 
 ```typescript
 interface User {
@@ -385,35 +385,35 @@ interface User {
   email: string
 }
 
-// Type-safe get
+// 类型安全的获取
 const user = storage.get<User>('user')
 
-// Type-safe set
+// 类型安全的设置
 storage.set('user', {
   id: 1,
   name: 'Alice',
   email: 'alice@example.com'
 })
 
-// Type inference
+// 类型推导
 const name = storage.get<string>('user.name')
 ```
 
-## ⚠️ Important Notes
+## ⚠️ 重要说明
 
-### Deep Path Behavior
+### 深度路径行为
 
-1. **Path Auto-creation**: By default, createPath is false. Intermediate objects or arrays will not be created automatically.
+1. **路径自动创建**：默认情况下，`createPath` 为 `false`。不会自动创建中间对象或数组。
 
 ```typescript
-// This will throw an error or fail silently if user.settings does not exist
+// 如果 `user.settings` 不存在，则会抛出错误或静默失败
 storage.set('user.settings.theme', 'dark')
 
-// Enable auto-creation
+// 启用自动创建
 storage.set('user.settings.theme', 'dark', { createPath: true })
 ```
 
-2. **Array Index**: Numeric segments are treated as array indices.
+2. **数组索引**：数字段被视为数组索引。
 
 ```typescript
 storage.set('items', [])
@@ -421,72 +421,72 @@ storage.set('items.0', 'first') // items[0] = 'first'
 storage.set('items.1', 'second') // items[1] = 'second'
 ```
 
-3. **Type Mismatch**: Operations will fail if the path type doesn't match the data type.
+3. **类型不匹配**：如果路径类型与数据类型不匹配，操作将失败。
 
 ```typescript
 storage.set('user', { name: 'Alice' })
-storage.get('user.name.age') // Will return null (name is string, not object)
+storage.get('user.name.age') // 返回 null（name 是字符串，不是对象）
 ```
 
-### Error Handling
+### 错误处理
 
-Storadapt handles errors gracefully and logs them to the console:
+Storadapt 会优雅地处理错误并记录到控制台：
 
 ```typescript
-// Non-existent path returns null
+// 不存在的路径返回 null
 const value = storage.get('non.existent.path') // null
 
-// With default value
+// 使用默认值
 const value = storage.get('non.existent.path', { defaultValue: 'default' }) // 'default'
 
-// Invalid operations are logged but don't throw
+// 无效操作会被记录但不会抛出异常
 storage.set('user', 'string')
-storage.set('user.profile.name', 'Alice') // Error logged, operation skipped
+storage.set('user.profile.name', 'Alice') // 记录错误，跳过操作
 ```
 
-## 🎯 Use Cases
+## 🎯 适用场景
 
-Storadapt is ideal for the following scenarios:
+Storadapt 非常适合以下场景：
 
-- 🌐 **Browser** **Applications** – Wrapper for localStorage / sessionStorage
-- 📱 **Mobile** **Applications** – Adapters for AsyncStorage and similar APIs
-- 🧪 **Testing** **Environments** – In-memory storage simulation
-- 🔧 **Configuration** **Management** – Storing and accessing complex configuration data
-- 🛒 **State** **Persistence** – Persisting application state locally
-- 📊 **Data** **Caching** – Structured data caching solutions
+- 🌐 **浏览器应用** - localStorage/sessionStorage 的封装
+- 📱 **移动应用** - AsyncStorage 等适配
+- 🧪 **测试环境** - 内存存储模拟
+- 🔧 **配置管理** - 复杂配置的存储和访问
+- 🛒 **状态持久化** - 应用状态的本地存储
+- 📊 **数据缓存** - 结构化数据的缓存方案
 
-## 🔄 Comparison with Other Approaches
+## 🔄 与其他方案对比
 
-### Traditional localStorage
+### 传统 localStorage
 
 ```typescript
-// ❌ Traditional way
+// ❌ 传统方式
 const user = JSON.parse(localStorage.getItem('user') || '{}')
 user.profile.email = 'new@example.com'
 localStorage.setItem('user', JSON.stringify(user))
 
-// ✅ Using Storadapt
+// ✅ 使用 Storadapt
 storage.set('user.profile.email', 'new@example.com', { createPath: true })
 ```
 
-### Advantages
+### 优势
 
-- No need for manual serialization/deserialization
-- More intuitive deep path access
-- Automatic type conversion
-- Better error handling
-- TypeScript support
+- 无需手动序列化/反序列化
+- 深度路径访问更直观
+- 自动类型转换
+- 更好的错误处理
+- TypeScript 支持
 
-## 📄 License
+## 📄 许可证
 
 MIT License © 2024 [king3](https://github.com/OpenKnights)
 
-## 🤝 Contributing
+## 🤝 贡献
 
-Contributions, issues and feature requests are welcome!
+欢迎贡献、提出问题和功能请求！
 
-Feel free to check the [issues page](https://github.com/OpenKnights/storadapt/issues).
+随时查看 [issues 页面](https://github.com/OpenKnights/storadapt/issues)。
 
-## ⭐ Show Your Support
+## ⭐ 支持
 
-Give a ⭐️ if this project helped you!
+如果这个项目对你有帮助，请给个 ⭐️！
