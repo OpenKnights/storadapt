@@ -36,12 +36,18 @@
     "play": "node cli/.output/play.js",
     "test": "vitest",
     "test:adapter": "vitest test/adapter.test.ts",
+    "test:index": "vitest test/index.test.ts",
     "test:integration": "vitest test/integration.test.ts",
+    "test:storage": "vitest test/storage.test.ts",
+    "test:util": "vitest test/util.test.ts",
     "lint": "eslint",
     "lint:fix": "eslint --fix",
     "format": "prettier . --write",
     "release": "bumpp && pnpm publish",
     "release:beta": "bumpp && pnpm publish --tag=beta"
+  },
+  "dependencies": {
+    "superjson": "^2.2.5"
   },
   "devDependencies": {
     "@king-3/eslint-config": "1.0.8",
@@ -56,8 +62,5 @@
     "tsx": "^4.20.6",
     "typescript": "^5.9.2",
     "vitest": "^3.2.4"
-  },
-  "dependencies": {
-    "superjson": "^2.2.5"
   }
 }

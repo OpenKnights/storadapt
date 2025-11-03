@@ -105,7 +105,7 @@ describe('Index Exports', () => {
 
       storage.set('key', 'value')
       expect(storage.get('key')).toBe('value')
-      expect(customStore.get('key')).toBe('"value"')
+      expect(customStore.get('key')).toBe('value')
     })
   })
 
@@ -116,7 +116,9 @@ describe('Index Exports', () => {
     beforeEach(() => {
       store = {}
       mockStorage = {
-        getItem: vi.fn((key: string) => store[key] || null),
+        getItem: vi.fn((key: string) =>
+          store[key] !== null && store[key] !== undefined ? store[key] : null
+        ),
         setItem: vi.fn((key: string, value: string) => {
           store[key] = value
         }),

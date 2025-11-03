@@ -9,13 +9,12 @@ import type {
   StorageAdapter
 } from './types'
 
-import superjson from 'superjson'
 import {
+  deserialize,
   isArrayIndex,
-  isJsonString,
   isObject,
-  isString,
   parsePath,
+  serialize,
   traversePath
 } from './util'
 
@@ -88,7 +87,7 @@ export class Storadapt {
       const dotIndex = key.indexOf('.')
 
       if (dotIndex === -1) {
-        const serialized = this._serialize(value)
+        const serialized = serialize(value)
         this.adapter.setItem(key, serialized)
         return
       }
@@ -212,12 +211,7 @@ export class Storadapt {
     }
 
     // 3. Parse JSON
-    let rootValue: any
-    if (isJsonString(rawValue!)) {
-      rootValue = superjson.parse(rawValue!)
-    } else {
-      rootValue = rawValue
-    }
+    const rootValue = deserialize(rawValue)
 
     // 4. Validate first segment type
     if (!this._validateFirstSegment(rootValue, pathSegments[0])) {
@@ -235,7 +229,7 @@ export class Storadapt {
    * Save value back to storage
    */
   private _saveToStorage(key: string, value: any): void {
-    const serialized = superjson.stringify(value)
+    const serialized = serialize(value)
     this.adapter.setItem(key, serialized)
   }
 
@@ -249,11 +243,7 @@ export class Storadapt {
       return options?.defaultValue ?? null
     }
 
-    if (isJsonString(rawValue)) {
-      return superjson.parse(rawValue) as T
-    }
-
-    return rawValue as T
+    return deserialize<T>(rawValue)
   }
 
   /**
@@ -306,7 +296,7 @@ export class Storadapt {
       target: Record<string | number, any>,
       key: string | number
     ): void => {
-      if (remove) {
+      if (remove && !isArrayIndex(lastSegment)) {
         delete target[key]
       } else {
         target[key] = value
@@ -354,21 +344,6 @@ export class Storadapt {
     } else {
       return isObject(value)
     }
-  }
-
-  /**
-   * Serialize value
-   */
-  private _serialize(value: any): string {
-    if (isString(value)) {
-      return value
-    }
-
-    if (isObject(value) || Array.isArray(value)) {
-      return superjson.stringify(value)
-    }
-
-    return String(value)
   }
 }
 

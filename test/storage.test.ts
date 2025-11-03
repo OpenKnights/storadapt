@@ -10,7 +10,8 @@ describe('Storadapt Storage', () => {
   beforeEach(() => {
     store = {}
     mockAdapter = {
-      getItem: (key: string) => store[key] || null,
+      getItem: (key: string) =>
+        store[key] !== null && store[key] !== undefined ? store[key] : null,
       setItem: (key: string, value: string) => {
         store[key] = value
       },
@@ -153,8 +154,7 @@ describe('Storadapt Storage', () => {
 
     it('should set deeply nested property', () => {
       storage.set('config', {})
-      storage.set('config.theme.color', 'dark')
-
+      storage.set('config.theme.color', 'dark', { createPath: true })
       const color = storage.get('config.theme.color')
       expect(color).toBe('dark')
     })
@@ -207,7 +207,7 @@ describe('Storadapt Storage', () => {
       storage.remove('items.1')
 
       const items = storage.get('items')
-      // 注意：删除数组元素会变成 undefined
+      // Note: Deleting an array element will result in `undefined`.
       expect(items[1]).toBeUndefined()
     })
 

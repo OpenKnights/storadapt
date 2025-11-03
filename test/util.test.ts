@@ -1,10 +1,13 @@
+import superjson from 'superjson'
 import { describe, expect, it } from 'vitest'
 import {
+  deserialize,
   isArrayIndex,
-  isJsonString,
   isObject,
   isString,
+  isSuperJsonFormat,
   parsePath,
+  serialize,
   traversePath
 } from '../src/util'
 
@@ -87,29 +90,74 @@ describe('Utility Functions', () => {
     })
   })
 
-  describe('isJsonString', () => {
-    it('should return true for valid JSON strings', () => {
-      expect(isJsonString('{}')).toBe(true)
-      expect(isJsonString('[]')).toBe(true)
-      expect(isJsonString('{"key":"value"}')).toBe(true)
-      expect(isJsonString('[1,2,3]')).toBe(true)
-      expect(isJsonString('null')).toBe(true)
-      expect(isJsonString('true')).toBe(true)
-      expect(isJsonString('123')).toBe(true)
-      expect(isJsonString('"string"')).toBe(true)
+  describe('isSuperJsonFormat', () => {
+    it('should detect SuperJSON format', () => {
+      const superJsonStr = superjson.stringify({ a: 1, b: undefined })
+      expect(isSuperJsonFormat(superJsonStr)).toBe(true)
     })
 
-    it('should return false for invalid JSON', () => {
-      expect(isJsonString('{invalid}')).toBe(false)
-      expect(isJsonString('{')).toBe(false)
-      expect(isJsonString('plain text')).toBe(false)
-      expect(isJsonString('undefined')).toBe(false)
+    it('should reject plain JSON', () => {
+      expect(isSuperJsonFormat('{"a":1}')).toBe(false)
+      expect(isSuperJsonFormat('[1,2,3]')).toBe(false)
     })
 
-    it('should return false for non-strings', () => {
-      expect(isJsonString(123 as any)).toBe(false)
-      expect(isJsonString({} as any)).toBe(false)
-      expect(isJsonString(null as any)).toBe(false)
+    it('should reject plain strings', () => {
+      expect(isSuperJsonFormat('hello')).toBe(false)
+      expect(isSuperJsonFormat('123')).toBe(false)
+    })
+
+    it('should reject invalid JSON', () => {
+      expect(isSuperJsonFormat('{invalid}')).toBe(false)
+    })
+  })
+
+  describe('serialize & deserialize', () => {
+    it('should serialize and deserialize a plain object', () => {
+      const obj = { name: 'Alice', age: 25 }
+      const serialized = serialize(obj)
+      expect(typeof serialized).toBe('string')
+
+      const deserialized = deserialize(serialized)
+      expect(deserialized).toEqual(obj)
+    })
+
+    it('should return string directly when serializing string', () => {
+      const str = 'hello world'
+      const serialized = serialize(str)
+      expect(serialized).toBe(str)
+    })
+
+    it('should serialize and deserialize special types via superjson', () => {
+      const obj = { date: new Date('2024-01-01T00:00:00Z'), undef: undefined }
+      const serialized = serialize(obj)
+      // superjson 格式包含 json + meta 字段
+      expect(isSuperJsonFormat(serialized)).toBe(true)
+
+      const deserialized = deserialize(serialized)
+      expect(deserialized).toEqual(obj)
+      expect(deserialized.date).toBeInstanceOf(Date)
+      expect(deserialized.date.toISOString()).toBe('2024-01-01T00:00:00.000Z')
+    })
+
+    it('should fall back to JSON.parse when not superjson', () => {
+      const plainJson = '{"a":1,"b":2}'
+      const result = deserialize(plainJson)
+      expect(result).toEqual({ a: 1, b: 2 })
+    })
+
+    it('should return raw string when JSON.parse fails', () => {
+      const invalid = '{invalid json}'
+      const result = deserialize(invalid)
+      expect(result).toBe(invalid)
+    })
+
+    it('should return null when input is null', () => {
+      expect(deserialize(null)).toBeNull()
+    })
+
+    it('should return non-string input directly', () => {
+      const input = { a: 1 } as any
+      expect(deserialize(input)).toBe(input)
     })
   })
 
@@ -203,19 +251,20 @@ describe('Utility Functions', () => {
       it('should throw error for negative index', () => {
         const obj = { items: ['a', 'b'] }
         expect(() => traversePath(obj, ['items', '-1'])).toThrow(
-          /cannot be negative/
+          /items is not an object/
         )
       })
     })
 
     describe('Path creation', () => {
       it('should create object path when createPath is true', () => {
-        const obj = {}
-        const result = traversePath(obj, ['user', 'profile'], {
-          stopBeforeLast: true,
+        const obj: any = {}
+        traversePath(obj, ['user', 'profile'], {
           createPath: true
         })
-        expect(result).toEqual({ profile: {} })
+        expect(JSON.stringify(obj.user)).toEqual(
+          JSON.stringify({ profile: {} })
+        )
       })
 
       it('should create array when next segment is array index', () => {

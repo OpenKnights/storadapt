@@ -15,7 +15,6 @@ const baseConfig: UserConfig = {
   clean: true
 }
 
-
 export default defineConfig(
   createConfigs(baseConfig, [
     { format: 'esm', dts: true },

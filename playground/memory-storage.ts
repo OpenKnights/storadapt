@@ -1,3 +1,4 @@
+/* eslint-disable no-console */
 import superjson from 'superjson'
 
 // import { createStoradapt } from '../src'

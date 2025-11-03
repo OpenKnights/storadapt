@@ -9,7 +9,8 @@ describe('Integration Tests', () => {
   beforeEach(() => {
     store = {}
     adapter = {
-      getItem: (key: string) => store[key] || null,
+      getItem: (key: string) =>
+        store[key] !== null && store[key] !== undefined ? store[key] : null,
       setItem: (key: string, value: string) => {
         store[key] = value
       },

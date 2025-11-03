@@ -11,7 +11,9 @@ describe('Adapter', () => {
       const store: Record<string, string> = {}
       let getStoreLength = () => Object.keys(store).length
       mockStorage = {
-        getItem: vi.fn((key: string) => store[key] || null),
+        getItem: vi.fn((key: string) =>
+          store[key] !== null && store[key] !== undefined ? store[key] : null
+        ),
         setItem: vi.fn((key: string, value: string) => {
           store[key] = value
         }),

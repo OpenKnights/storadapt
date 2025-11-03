@@ -39,31 +39,13 @@ const logError = (operation: string, error: unknown): void => {
 }
 
 /**
- * Extended storage adapter with additional methods
- */
-interface ExtendedStorageAdapter extends StorageAdapter {
-  /**
-   * Get the name of the nth key in storage
-   * @param index - Index of the key
-   * @returns Key name or null if index is out of bounds
-   */
-  key: (index: number) => string | null
-
-  /**
-   * Get the number of keys in storage
-   * @returns Number of stored keys
-   */
-  length: () => number
-}
-
-/**
  * Create a file-based storage adapter
  * Each key is stored as a separate file
  *
  * @param storagePath - Relative path to storage directory
  * @returns ExtendedStorageAdapter instance
  */
-const createCustomStorage = (storagePath: string): ExtendedStorageAdapter => {
+const createCustomStorage = (storagePath: string): StorageAdapter => {
   /**
    * Get absolute file path for a storage key
    */
@@ -215,3 +197,7 @@ console.log(`🚀 ~ info:`, customStoradapt.get('info'))
 console.log(`🚀 ~ testArr:`, customStoradapt.get('testArr'))
 
 console.log(`🚀 ~ storadapt.length:`, customStoradapt.length)
+
+console.log(`🚀 ~ key_n:`, customStoradapt.key(1))
+
+// customStoradapt.clear()
