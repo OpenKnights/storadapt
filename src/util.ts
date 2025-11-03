@@ -1,5 +1,7 @@
 import type { TraversePathOptions } from './types'
 
+import superjson from 'superjson'
+
 /**
  * Check if value is a string
  */
@@ -23,16 +25,52 @@ export function isArrayIndex(str: string): boolean {
 }
 
 /**
- * Check if string is valid JSON
+ * Check if the string is in SuperJSON format
  */
-export const isJsonString = (str: string): boolean => {
-  if (!isString(str)) return false
+export function isSuperJsonFormat(str: string): boolean {
+  if (typeof str !== 'string') return false
 
   try {
-    JSON.parse(str)
-    return true
+    const parsed = JSON.parse(str)
+    return parsed !== null && typeof parsed === 'object' && 'json' in parsed
   } catch {
     return false
+  }
+}
+
+/**
+ * Serialized values stored in storage
+ */
+export function serialize(value: any): string {
+  if (typeof value === 'string') {
+    return value
+  }
+
+  return superjson.stringify(value)
+}
+
+/**
+ * Deserialize values from storage
+ */
+export function deserialize<T = any>(str: string | null): T | null {
+  if (str === null) {
+    return null
+  }
+
+  if (typeof str !== 'string') {
+    return str as T
+  }
+
+  if (isSuperJsonFormat(str)) {
+    try {
+      return superjson.parse(str) as T
+    } catch {} // The `catch` statement does not perform any processing.
+  }
+
+  try {
+    return JSON.parse(str) as T
+  } catch {
+    return str as T
   }
 }
 
