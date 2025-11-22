@@ -31,26 +31,20 @@
     }
   },
   "scripts": {
-    "build": "tsdown",
-    "build:play": "tsdown cli/play.ts -d cli/.output/ -f esm",
-    "play": "node cli/.output/play.js",
+    "play": "play",
+    "build": "tsx scripts/build.ts",
     "test": "vitest",
-    "test:adapter": "vitest test/adapter.test.ts",
-    "test:index": "vitest test/index.test.ts",
-    "test:integration": "vitest test/integration.test.ts",
-    "test:storage": "vitest test/storage.test.ts",
-    "test:util": "vitest test/util.test.ts",
     "lint": "eslint",
     "lint:fix": "eslint --fix",
-    "format": "prettier . --write",
-    "release": "bumpp && pnpm publish",
-    "release:beta": "bumpp && pnpm publish --tag=beta"
+    "format": "prettier --write .",
+    "release": "bumpp"
   },
   "dependencies": {
     "superjson": "^2.2.5"
   },
   "devDependencies": {
     "@king-3/eslint-config": "1.0.8",
+    "@king-3/play-tsx": "^2.0.0",
     "@king-3/prettier-config": "^1.0.2",
     "@types/node": "^24.9.2",
     "@types/node-localstorage": "^1.3.3",
