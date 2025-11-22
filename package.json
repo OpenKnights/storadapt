@@ -1,6 +1,6 @@
 {
   "name": "storadapt",
-  "version": "1.0.1",
+  "version": "1.1.0",
   "description": "A flexible storage adapter with deep path updates and automatic serialization",
   "type": "module",
   "keywords": [
