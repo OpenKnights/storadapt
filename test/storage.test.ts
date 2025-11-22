@@ -1,5 +1,7 @@
 import type { StorageAdapter } from '../src/types'
+
 import { beforeEach, describe, expect, it } from 'vitest'
+
 import { Storadapt } from '../src/storage'
 
 describe('Storadapt Storage', () => {

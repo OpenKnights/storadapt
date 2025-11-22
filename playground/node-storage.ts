@@ -1,6 +1,7 @@
 /* eslint-disable unused-imports/no-unused-vars */
 /* eslint-disable no-console */
 import { LocalStorage } from 'node-localstorage'
+
 import { createStoradapt } from '../src'
 
 const nodeStoradapt = createStoradapt(() => {

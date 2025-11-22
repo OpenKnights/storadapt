@@ -1,5 +1,6 @@
 import superjson from 'superjson'
 import { describe, expect, it } from 'vitest'
+
 import {
   deserialize,
   isArrayIndex,

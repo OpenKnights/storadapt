@@ -1,5 +1,7 @@
 import type { StorageAdapter } from '../src/types'
+
 import { beforeEach, describe, expect, it, vi } from 'vitest'
+
 import {
   createBrowserStoradapt,
   createStoradapt,

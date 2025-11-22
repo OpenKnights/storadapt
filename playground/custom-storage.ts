@@ -1,5 +1,6 @@
 /* eslint-disable no-console */
 import type { StorageAdapter } from '../src'
+
 import {
   existsSync,
   mkdirSync,
@@ -10,6 +11,7 @@ import {
 } from 'node:fs'
 import { dirname, resolve } from 'node:path'
 import { fileURLToPath } from 'node:url'
+
 import { createStoradapt } from '../src'
 
 const STORAGE_PATH = '../.cache/custom-storage'

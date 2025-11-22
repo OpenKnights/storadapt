@@ -1,4 +1,5 @@
 import type { BrowserStorageType, StorageAdapter } from './types'
+
 import { createBrowserStorageAdapter } from './adapter'
 import { Storadapt } from './storage'
 
