@@ -23,14 +23,10 @@
 
 ```bash
 npm install storadapt
-```
-
-```bash
-yarn add storadapt
-```
-
-```bash
-pnpm add storadapt
+# or
+pnpm install storadapt
+# or
+yarn install storadapt
 ```
 
 ## 🚀 Quick Start
@@ -479,14 +475,10 @@ storage.set('user.profile.email', 'new@example.com', { createPath: true })
 
 ## 📄 License
 
-MIT License © 2024 [king3](https://github.com/OpenKnights)
+[MIT](./LICENSE) License © 2025-PRESENT [king3](https://github.com/coderking3)
 
 ## 🤝 Contributing
 
 Contributions, issues and feature requests are welcome!
 
 Feel free to check the [issues page](https://github.com/OpenKnights/storadapt/issues).
-
-## ⭐ Show Your Support
-
-Give a ⭐️ if this project helped you!

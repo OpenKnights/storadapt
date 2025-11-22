@@ -23,14 +23,10 @@
 
 ```bash
 npm install storadapt
-```
-
-```bash
-yarn add storadapt
-```
-
-```bash
-pnpm add storadapt
+# or
+pnpm install storadapt
+# or
+yarn install storadapt
 ```
 
 ## 🚀 快速开始
@@ -479,14 +475,10 @@ storage.set('user.profile.email', 'new@example.com', { createPath: true })
 
 ## 📄 许可证
 
-MIT License © 2024 [king3](https://github.com/OpenKnights)
+[MIT](./LICENSE) 许可证 © 2025-至今 [king3](https://github.com/coderking3)
 
 ## 🤝 贡献
 
-欢迎贡献、提出问题和功能请求！
+欢迎贡献、问题和功能请求!
 
-随时查看 [issues 页面](https://github.com/OpenKnights/storadapt/issues)。
-
-## ⭐ 支持
-
-如果这个项目对你有帮助，请给个 ⭐️！
+请随时查看 [issues 页面](https://github.com/OpenKnights/coderking3/issues)。
